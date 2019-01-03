@@ -23,7 +23,7 @@ def read_performance(path, attribute):
                 success_rate.append(data[attribute][key])
 
     smooth_num = 1
-    d = [success_rate[i*smooth_num:i*smooth_num + smooth_num] for i in xrange(len(success_rate)/smooth_num)]
+    d = [success_rate[i*smooth_num:i*smooth_num + smooth_num] for i in range(len(success_rate)/smooth_num)]
 
     success_rate_new = []
     cache = 0

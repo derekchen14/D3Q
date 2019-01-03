@@ -5,7 +5,7 @@ created on Mar 12, 2018
 import torch
 import torch.nn as nn
 from torch.autograd import Variable
-from torch.nn.utils import clip_grad_norm
+from torch.nn.utils import clip_grad_norm_
 import torch.optim as optim
 import numpy as np
 
@@ -83,7 +83,7 @@ class SimulatorModel(nn.Module):
             # loss = self.NLLLoss(au_pred, au) + self.MSELoss(r_pred, r) + self.CrossEntropyLoss(t_pred, t)
             loss = self.NLLLoss(au_pred, au) + self.MSELoss(r_pred, r) + self.BCELoss(t_pred, t)
             loss.backward()
-            clip_grad_norm(self.parameters(), self.max_norm)
+            clip_grad_norm_(self.parameters(), self.max_norm)
             self.optimizer.step()
             return loss
 

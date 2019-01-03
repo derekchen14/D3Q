@@ -45,7 +45,7 @@ class ModelBasedSimulator(UserSimulator):
         assert len(self.training_goal_ids) == len(self.start_set['all'])
 
         self.id_goals = dict(zip(self.training_goal_ids, self.start_set['all']))
-        for e in xrange(400):
+        for e in range(400):
             cost = 0
             for i in self.id_goals.items()[0:170]:
                 if len(self.training_corpus[i[0]]) < 2 or len(i[1]) < 2:
@@ -97,7 +97,7 @@ class ModelBasedSimulator(UserSimulator):
         slots_predict = np.vstack(slots_predict)
         slots_groundtruth = np.vstack(slots_groundtruth)
 
-        for i in xrange(slots_predict.shape[1]):
+        for i in range(slots_predict.shape[1]):
 
             acc = slots_predict[:,i].astype(np.int32) & slots_groundtruth[:,i].astype(np.int32)
             acc = acc.sum()

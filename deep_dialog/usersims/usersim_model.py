@@ -89,12 +89,13 @@ class ModelBasedSimulator(UserSimulator):
 
     def _sample_action(self):
         """ randomly sample a start action based on user goal """
-
-        self.state['diaact'] = random.choice(dialog_config.start_dia_acts.keys())
+        candidate_acts = list(dialog_config.start_dia_acts.keys())
+        self.state['diaact'] = random.choice(candidate_acts)
 
         # "sample" informed slots
         if len(self.goal['inform_slots']) > 0:
-            known_slot = random.choice(self.goal['inform_slots'].keys())
+            candidate_slots = list(self.goal['inform_slots'].keys())
+            known_slot = random.choice(candidate_slots)
             self.state['inform_slots'][known_slot] = self.goal['inform_slots'][known_slot]
 
             if 'moviename' in self.goal['inform_slots'].keys():  # 'moviename' must appear in the first user turn
@@ -160,12 +161,12 @@ class ModelBasedSimulator(UserSimulator):
         dis_idx = 0
 
         for iter_batch in range(num_batches):
-            for iter in range(len(self.training_examples) / (batch_size)):
-                batch = [random.choice(self.training_examples) for i in xrange(batch_size)]
+            for iter in range(int(len(self.training_examples) / (batch_size))):
+                batch = [random.choice(self.training_examples) for i in range(batch_size)]
                 np_batch = []
                 for x in range(6):
                     v = []
-                    for i in xrange(len(batch)):
+                    for i in range(len(batch)):
                         v.append(batch[i][x])
                     np_batch.append(np.vstack(v))
                 # print np_batch[0].shape, np_batch[2].shape
@@ -193,11 +194,11 @@ class ModelBasedSimulator(UserSimulator):
         self.total_loss_for_ge = 0
         dis_idx = 0
         for iter_batch in range(num_batches):
-            batch = [random.choice(self.training_examples) for i in xrange(batch_size)]
+            batch = [random.choice(self.training_examples) for i in range(batch_size)]
             np_batch = []
             for x in range(6):
                 v = []
-                for i in xrange(len(batch)):
+                for i in range(len(batch)):
                     v.append(batch[i][x])
                 np_batch.append(np.vstack(v))
             # print np_batch[0].shape, np_batch[2].shape
@@ -254,7 +255,7 @@ class ModelBasedSimulator(UserSimulator):
 
         if action['diaact'] == 'inform':
             if len(action['inform_slots'].keys()) > 0:
-                slots = action['inform_slots'].keys()[0]
+                slots = next(iter(action['inform_slots']))
                 if slots in self.sample_goal['inform_slots'].keys():
                     action['inform_slots'][slots] = self.sample_goal['inform_slots'][slots]
                 else:

@@ -299,13 +299,13 @@ class AgentDQN(Agent):
         running_expereince_pool = self.experience_replay_pool + self.experience_replay_pool_from_model
 
         for iter in range(num_iter):
-            for _ in range(len(running_expereince_pool) / (batch_size)):
+            for _ in range(int(len(running_expereince_pool) / (batch_size))):
 
-                batch = [random.choice(running_expereince_pool) for i in xrange(batch_size)]
+                batch = [random.choice(running_expereince_pool) for i in range(batch_size)]
                 np_batch = []
                 for x in range(5):
                     v = []
-                    for i in xrange(len(batch)):
+                    for i in range(len(batch)):
                         v.append(batch[i][x])
                     np_batch.append(np.vstack(v))
                 batch_struct = self.dqn.singleBatch(np_batch)
@@ -322,11 +322,11 @@ class AgentDQN(Agent):
         self.cur_bellman_err_planning = 0
         running_expereince_pool = self.experience_replay_pool + self.experience_replay_pool_from_model
         for _ in range(num_batches):
-            batch = [random.choice(self.experience_replay_pool) for i in xrange(batch_size)]
+            batch = [random.choice(self.experience_replay_pool) for i in range(batch_size)]
             np_batch = []
             for x in range(5):
                 v = []
-                for i in xrange(len(batch)):
+                for i in range(len(batch)):
                     v.append(batch[i][x])
                 np_batch.append(np.vstack(v))
 

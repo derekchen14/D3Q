@@ -11,7 +11,7 @@ planning_steps: 4
 train_discriminator: 1
 pretrain_discriminator: 0
 cmd_input_mode: 0
-goal_file_path: ./deep_dialog/data/user_goals_first_turn_template.part.movie.v1.p
+goal_file_path: ./deep_dialog/data/user_goals_ftt.part.movie.v1.p
 max_turn: 40
 discriminator_nn_type: MLP
 grounded: False

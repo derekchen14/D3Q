@@ -4,9 +4,9 @@ Created on May 22, 2016
 This should be a simple minimalist run file. It's only responsibility should be to parse the arguments (which agent, user simulator to use) and launch a dialog simulation.
 
 user goal files:
-first turn: user_goals_first_turn_template.v2.p
+first turn: user_goals_ftt.v2.p
 all turns: user_goals_all_turns_template.p
-user_goals_first_turn_template.part.movie.v1.p: a subset of user goal. [Please use this one, the upper bound success rate on movie_kb.1k.json is 0.9765.]
+user_goals_ftt.part.movie.v1.p: a subset of user goal. [Please use this one, the upper bound success rate on movie_kb.1k.json is 0.9765.]
 
 @author: xiul, t-zalipt, t-shsu, derekchen14
 """
@@ -44,7 +44,7 @@ if __name__ == "__main__":
     parser.add_argument('--movie_kb_path', dest='movie_kb_path', type=str, default='./deep_dialog/data/movie_kb.1k.p', help='path to the movie kb .json file')
     parser.add_argument('--act_set', dest='act_set', type=str, default='./deep_dialog/data/dia_acts.txt', help='path to dia act set; none for loading from labeled file')
     parser.add_argument('--slot_set', dest='slot_set', type=str, default='./deep_dialog/data/slot_set.txt', help='path to slot set; none for loading from labeled file')
-    parser.add_argument('--goal_file_path', dest='goal_file_path', type=str, default='./deep_dialog/data/user_goals_first_turn_template.part.movie.v1.p', help='a list of user goals')
+    parser.add_argument('--goal_file_path', dest='goal_file_path', type=str, default='./deep_dialog/data/user_goals_ftt.part.movie.v1.p', help='a list of user goals')
     parser.add_argument('--diaact_nl_pairs', dest='diaact_nl_pairs', type=str, default='./deep_dialog/data/dia_act_nl_pairs.v6.json', help='path to the pre-defined dia_act&NL pairs')
 
     parser.add_argument('--max_turn', dest='max_turn', default=20, type=int, help='maximum length of each dialog (default=20, 0=no maximum length)')
@@ -107,7 +107,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     params = vars(args)
     print('Dialog Parameters: ')
-    print(json.dumps(params, indent=2))
+    # print(json.dumps(params, indent=2))
 
 
 seed = 2
@@ -124,7 +124,7 @@ dict_path = params['dict_path']
 goal_file_path = params['goal_file_path']
 
 # load the user goals from .p file
-all_goal_set = pickle.load(open(goal_file_path, 'rb'))
+all_goal_set = pickle.load(open(goal_file_path, 'rb'), encoding='latin1')
 
 # split goal set
 split_fold = params.get('split_fold', 5)
@@ -139,7 +139,7 @@ for u_goal_id, u_goal in enumerate(all_goal_set):
 
 
 movie_kb_path = params['movie_kb_path']
-movie_kb = pickle.load(open(movie_kb_path, 'rb'))
+movie_kb = pickle.load(open(movie_kb_path, 'rb'), encoding='latin1')
 
 act_set = text_to_dict(params['act_set'])
 slot_set = text_to_dict(params['slot_set'])
@@ -156,7 +156,7 @@ with open(os.path.join(params['write_model_dir'], "model_config"), "w+") as f:
 ################################################################################
 # a movie dictionary for user simulator - slot:possible values
 ################################################################################
-movie_dictionary = pickle.load(open(dict_path, 'rb'))
+movie_dictionary = pickle.load(open(dict_path, 'rb'), encoding='latin1')
 
 dialog_config.run_mode = params['run_mode']
 dialog_config.auto_suggest = params['auto_suggest']
@@ -322,7 +322,7 @@ def save_model(path, agt, success_rate, agent, best_epoch, cur_epoch):
     try:
         pickle.dump(checkpoint, open(filepath, "wb"))
         print('saved model in %s' % (filepath, ))
-    except(Exception, e):
+    except Exception as e:
         print('Error: Writing model fails: %s' % (filepath, ))
         print(e)
 
@@ -332,9 +332,9 @@ def save_performance_records(path, agt, records):
     filename = 'agt_%s_performance_records.json' % (agt)
     filepath = os.path.join(path, filename)
     try:
-        json.dump(records, open(filepath, "wb"))
+        json.dump(records, open(filepath, "w"))
         print('saved model in %s' % (filepath, ))
-    except(Exception, e):
+    except Exception as e:
         print('Error: Writing model fails: %s' % (filepath, ))
         print(e)
 
@@ -344,11 +344,9 @@ def simulation_epoch(simulation_epoch_size):
     cumulative_reward = 0
     cumulative_turns = 0
 
-    print("+---------------------+")
     print("|      Validation     |")
-    print("+---------------------+")
     res = {}
-    for episode in xrange(simulation_epoch_size):
+    for episode in range(simulation_epoch_size):
         dialog_manager.initialize_episode(warm_start=True)
         episode_over = False
         while(not episode_over):
@@ -357,9 +355,9 @@ def simulation_epoch(simulation_epoch_size):
             if episode_over:
                 if reward > 0:
                     successes += 1
-                    print("simulation episode %s: Success" % (episode))
+                    # print("simulation episode %s: Success" % (episode))
                 else:
-                    print("simulation episode %s: Fail" % (episode))
+                    pass  # print("simulation episode %s: Fail" % (episode))
                 cumulative_turns += dialog_manager.state_tracker.turn_count
 
     res['success_rate'] = float(successes)/simulation_epoch_size
@@ -378,9 +376,7 @@ def simulation_dqn():
     total_simulation_count = 0
     num_real_exp_this_episode = 0
     max_num_real_exp = params['num_exp_store_per_episode_unit'] * (params['planning_steps'] + 1)
-    print("+------------------------------+")
     print("| Collecting Experiences (DQN) |")
-    print("+------------------------------+")
     res = {}
     while num_real_exp_this_episode < max_num_real_exp:
         # NOTE: dialog_manager.initialize_episode(False) will use world model
@@ -399,9 +395,9 @@ def simulation_dqn():
             if episode_over:
                 if reward > 0:
                     successes += 1
-                    print("simulation episode {}: Success".format(simulation_count))
+                    # print("simulation episode {}: Success".format(simulation_count))
                 else:
-                    print("simulation episode {}: Fail".format(simulation_count))
+                    pass # print("simulation episode {}: Fail".format(simulation_count))
                 cumulative_turns += dialog_manager.state_tracker.turn_count
 
     total_simulation_count += simulation_count
@@ -423,13 +419,8 @@ def simulation_ddq():
     max_num_real_exp = params['num_exp_store_per_episode_unit']
     max_num_fake_exp = params['num_exp_store_per_episode_unit'] * params['planning_steps']
 
-    print("+-----------------------------+")
     print("| Collecting Experiences (DDQ)|")
-    print("+-----------------------------+")
-    print("+---------------------------+")
-    print("| Collecting Experiences    |")
-    print("| From Real Human           |")
-    print("+---------------------------+")
+    # print("| Collecting Experiences From Real Human   |")
     res = {}
     total_simulation_count = 0
     simulation_count = 0
@@ -452,15 +443,12 @@ def simulation_ddq():
             if episode_over:
                 if reward > 0:
                     successes += 1
-                    print("simulation episode {}: Success".format(simulation_count))
+                    # print("simulation episode {}: Success".format(simulation_count))
                 else:
-                    print("simulation episode {}: Fail".format(simulation_count))
+                    pass # print("simulation episode {}: Fail".format(simulation_count))
                 cumulative_turns += dialog_manager.state_tracker.turn_count
 
-    print("+---------------------------+")
-    print("| Collecting Experiences    |")
-    print("| From World Model          |")
-    print("+---------------------------+")
+    print("| Collecting Experiences From World Model  |")
     total_simulation_count += simulation_count
     simulation_count = 0
     while num_fake_exp_this_episode < max_num_fake_exp:
@@ -483,9 +471,9 @@ def simulation_ddq():
             if episode_over:
                 if reward > 0:
                     successes += 1
-                    print("simulation episode {}: Success".format(simulation_count))
+                    # print("simulation episode {}: Success".format(simulation_count))
                 else:
-                    print("simulation episode {}: Fail".format(simulation_count))
+                    pass # print("simulation episode {}: Fail".format(simulation_count))
                 cumulative_turns += dialog_manager.state_tracker.turn_count
 
     total_simulation_count += simulation_count
@@ -507,13 +495,7 @@ def simulation_d3q():
     max_num_real_exp = params['num_exp_store_per_episode_unit']
     max_num_fake_exp = params['num_exp_store_per_episode_unit'] * params['planning_steps']
 
-    print("+------------------------------+")
-    print("| Collecting Experiences (D3Q)|")
-    print("+------------------------------+")
-    print("+---------------------------+")
-    print("| Collecting Experiences    |")
-    print("| From Real Human           |")
-    print("+---------------------------+")
+    print("| Collecting Experiences (D3Q) from Human|")
     res = {}
     simulation_count = 0
     total_simulation_count = 0
@@ -536,15 +518,12 @@ def simulation_d3q():
             if episode_over:
                 if reward > 0:
                     successes += 1
-                    print("simulation episode {}: Success".format(simulation_count))
+                    # print("simulation episode {}: Success".format(simulation_count))
                 else:
-                    print("simulation episode {}: Fail".format(simulation_count))
+                    pass # print("simulation episode {}: Fail".format(simulation_count))
                 cumulative_turns += dialog_manager.state_tracker.turn_count
 
-    print("+---------------------------+")
-    print("| Collecting Experiences    |")
-    print("| From World Model          |")
-    print("+---------------------------+")
+    print("| Collecting Experiences  From World Model     |")
     total_simulation_count += simulation_count
     simulation_count = 0
     while num_fake_exp_this_episode < max_num_fake_exp:
@@ -568,9 +547,9 @@ def simulation_d3q():
             if episode_over:
                 if reward > 0:
                     successes += 1
-                    print("simulation episode {}: Success".format(simulation_count))
+                    # print("simulation episode {}: Success".format(simulation_count))
                 else:
-                    print("simulation episode {}: Fail".format(simulation_count))
+                    pass # print("simulation episode {}: Fail".format(simulation_count))
                 cumulative_turns += dialog_manager.state_tracker.turn_count
 
     total_simulation_count += simulation_count
@@ -591,7 +570,7 @@ def simulation_epoch_with_gan_control_filter(simulation_epoch_size, use_world_mo
     print("| Collecting Experiences |")
     print("+------------------------+")
     res = {}
-    for episode in xrange(simulation_epoch_size):
+    for episode in range(simulation_epoch_size):
         # NOTE: dialog_manager.initialize_episode(False) will use world model
         dialog_manager.initialize_episode(not use_world_model)
         episode_over = False
@@ -601,9 +580,9 @@ def simulation_epoch_with_gan_control_filter(simulation_epoch_size, use_world_mo
             if episode_over:
                 if reward > 0:
                     successes += 1
-                    print("simulation episode %s: Success" % (episode))
+                    # print("simulation episode %s: Success" % (episode))
                 else:
-                    print("simulation episode %s: Fail" % (episode))
+                    pass # print("simulation episode %s: Fail" % (episode))
                 cumulative_turns += dialog_manager.state_tracker.turn_count
 
 
@@ -616,7 +595,7 @@ def simulation_epoch_with_gan_control_filter(simulation_epoch_size, use_world_mo
 
 
 def simulation_epoch_for_pretrain_discriminator(simulation_epoch_size):
-    for episode in xrange(simulation_epoch_size):
+    for episode in range(simulation_epoch_size):
         dialog_manager.initialize_episode(False)
         episode_over = False
         while (not episode_over):
@@ -626,7 +605,7 @@ def simulation_epoch_for_pretrain_discriminator(simulation_epoch_size):
 
 def simulation_epoch_for_discriminator(simulation_epoch_size=1):
     print("run simulation for discriminator...")
-    for episode in xrange(simulation_epoch_size):
+    for episode in range(simulation_epoch_size):
         experience_list = list()
         dialog_manager.initialize_episode(False)
         episode_over = False
@@ -651,8 +630,8 @@ def warm_start_simulation():
 
     res = {}
     warm_start_run_epochs = 0
-    for _ in xrange(1):
-        for episode in xrange(warm_start_epochs):
+    for _ in range(1):
+        for episode in range(warm_start_epochs):
             dialog_manager.initialize_episode(warm_start=True)
             episode_over = False
             while(not episode_over):
@@ -661,18 +640,19 @@ def warm_start_simulation():
                 if episode_over:
                     if reward > 0:
                         successes += 1
-                        print ("warm_start simulation episode %s: Success" % (episode))
-                    else: print ("warm_start simulation episode %s: Fail" % (episode))
+                        # print ("warm_start simulation episode %s: Success" % (episode))
+                    else:
+                        pass # print ("warm_start simulation episode %s: Fail" % (episode))
                     cumulative_turns += dialog_manager.state_tracker.turn_count
 
             warm_start_run_epochs += 1
 
         if params['boosted']:
             user_sim_planning.train(batch_size, 5)
-    import cPickle
-    cPickle.dump(agent.experience_replay_pool, open('warm_up_experience_pool_seed%d_r%d.pkl' %(seed, successes),'wb'))
-    cPickle.dump(agent.experience_replay_pool_from_model, open('warm_up_experience_pool_seed%d_r%d_sb.pkl' % (seed, successes), 'wb'))
-    cPickle.dump(user_sim_planning.training_examples, open('warm_up_experience_pool_seed%d_r%d_user.pkl' %(seed, successes),'wb'))
+    # import pickle
+    pickle.dump(agent.experience_replay_pool, open('warm_up_experience_pool_seed%d_r%d.pkl' %(seed, successes),'wb'))
+    pickle.dump(agent.experience_replay_pool_from_model, open('warm_up_experience_pool_seed%d_r%d_sb.pkl' % (seed, successes), 'wb'))
+    pickle.dump(user_sim_planning.training_examples, open('warm_up_experience_pool_seed%d_r%d_user.pkl' %(seed, successes),'wb'))
 
     agent.warm_start = 2
     res['success_rate'] = float(successes)/warm_start_run_epochs
@@ -724,7 +704,7 @@ def run_episodes(count, status):
             discriminator_loss = dialog_manager.discriminator.train()
             print("discriminator loss: {}".format(discriminator_loss))
 
-    for episode in xrange(count):
+    for episode in range(count):
         # warm_start_for_model = params['grounded']
         # simulation_epoch_size = planning_steps + 1
         if params['model_type'] == 'D3Q' and episode == 0:

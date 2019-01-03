@@ -1,5 +1,5 @@
 import json, cPickle
-goals = cPickle.load(open('user_goals_first_turn_template.part.movie.v1.p'))
+goals = cPickle.load(open('user_goals_ftt.part.movie.v1.p'))
 
 slots = []
 for i in goals:

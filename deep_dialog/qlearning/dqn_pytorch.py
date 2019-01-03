@@ -5,7 +5,7 @@ created on Mar 08, 2018
 import torch
 import torch.nn as nn
 from torch.autograd import Variable
-from torch.nn.utils import clip_grad_norm
+from torch.nn.utils import clip_grad_norm_
 import torch.optim as optim
 import numpy as np
 
@@ -69,7 +69,7 @@ class DQN(nn.Module):
         loss += td_error.pow(2).sum()
 
         loss.backward()
-        clip_grad_norm(self.model.parameters(), self.max_norm)
+        clip_grad_norm_(self.model.parameters(), self.max_norm)
         self.optimizer.step()
 
 
