@@ -143,9 +143,9 @@ class Discriminator(nn.Module):
         if batch_num == 0:
             batch_num = min(len(self.user_experience_pool)/batch_size, len(self.user_model_experience_pool)/batch_size)
 
-        for _ in range(batch_num):
+        for _ in range(int(batch_num)):
             loss += self.train_single_batch(batch_size)
-        return (loss.data.cpu().numpy()[0]/batch_num)
+        return ( loss.item() / batch_num )
 
     def prepare_state_representation(self, state):
         """ Create the representation for each state """
