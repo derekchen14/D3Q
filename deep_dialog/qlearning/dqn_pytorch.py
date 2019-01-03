@@ -79,8 +79,8 @@ class DQN(nn.Module):
 
     def save_model(self, model_path):
         torch.save(self.model.state_dict(), model_path)
-        print("model saved.")
+        print("model saved at {}".format(model_path))
 
     def load_model(self, model_path):
         self.model.load_state_dict(torch.load(model_path))
-        print("model loaded.")
+        print("model loaded from {}".format(model_path))

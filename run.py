@@ -107,7 +107,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     params = vars(args)
     print('Dialog Parameters: ')
-    # print(json.dumps(params, indent=2))
+    print(json.dumps(params, indent=2))
 
 
 seed = 2
@@ -344,7 +344,7 @@ def simulation_epoch(simulation_epoch_size):
     cumulative_reward = 0
     cumulative_turns = 0
 
-    print("|      Validation     |")
+    # print("|      Validation     |")
     res = {}
     for episode in range(simulation_epoch_size):
         dialog_manager.initialize_episode(warm_start=True)
@@ -363,7 +363,7 @@ def simulation_epoch(simulation_epoch_size):
     res['success_rate'] = float(successes)/simulation_epoch_size
     res['ave_reward'] = float(cumulative_reward)/simulation_epoch_size
     res['ave_turns'] = float(cumulative_turns)/simulation_epoch_size
-    print ("simulation success rate %s, ave reward %s, ave turns %s" % (res['success_rate'], res['ave_reward'], res['ave_turns']))
+    print ("Validation success rate %s, ave reward %s, ave turns %s" % (res['success_rate'], res['ave_reward'], res['ave_turns']))
     return res
 
 
@@ -376,7 +376,7 @@ def simulation_dqn():
     total_simulation_count = 0
     num_real_exp_this_episode = 0
     max_num_real_exp = params['num_exp_store_per_episode_unit'] * (params['planning_steps'] + 1)
-    print("| Collecting Experiences (DQN) |")
+    print("| Collecting Simulation Experiences (DQN) |")
     res = {}
     while num_real_exp_this_episode < max_num_real_exp:
         # NOTE: dialog_manager.initialize_episode(False) will use world model
@@ -419,8 +419,7 @@ def simulation_ddq():
     max_num_real_exp = params['num_exp_store_per_episode_unit']
     max_num_fake_exp = params['num_exp_store_per_episode_unit'] * params['planning_steps']
 
-    print("| Collecting Experiences (DDQ)|")
-    # print("| Collecting Experiences From Real Human   |")
+    print("| Collecting Experiences From Real Human (DDQ)|")
     res = {}
     total_simulation_count = 0
     simulation_count = 0
@@ -690,9 +689,7 @@ def run_episodes(count, status):
         print('warm_start starting ...')
         # warm_start_simulation_preload()
         warm_start_simulation()
-        print(len(agent.experience_replay_pool))
         # raw_input()
-        import pickle
         pickle.dump(dialog_manager.user_actions_for_dump, open('user_actions.dump','wb'))
         print('warm_start finished, start RL training ...')
 
@@ -714,7 +711,7 @@ def run_episodes(count, status):
         # update fixed target network
         agent.dqn.update_fixed_target_network()
 
-        print("Episode: %s" % (episode))
+        # print("Episode: %s" % (episode))
         agent.predict_mode = False
         dialog_manager.initialize_episode(True)
         episode_over = False
@@ -772,16 +769,12 @@ def run_episodes(count, status):
             agent.train(batch_size, 1)
 
             if params['train_world_model']:
-                print("+---------------------+")
                 print("|  Train World Model  |")
-                print("+---------------------+")
                 performance_records['world_model_loss'][episode] = user_sim_planning.train(batch_size, 1)
                 performance_records['world_model_buffer_size'][episode] = len(user_sim_planning.training_examples)
 
             if episode > 1 and params['model_type'] == 'D3Q' and params['train_discriminator']:
-                print("+---------------------+")
                 print("| Train Discriminator |")
-                print("+---------------------+")
                 discriminator_loss = dialog_manager.discriminator.train()
                 performance_records['discriminator_loss'][episode] = discriminator_loss
                 print("discriminator loss: {}".format(discriminator_loss))
